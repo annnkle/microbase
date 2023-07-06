@@ -1,0 +1,63 @@
+{% extends "theotherapp/base.html" %}
+{% block content %}
+<div class="container">
+  <div class="slideshow">
+    <h3>PCA</h3>
+    <div>
+      {% for item in pca_list %}
+      <input type="radio" onclick="showPlot({{ forloop.counter0 }})" id="plotButton-{{ forloop.counter0 }}"
+      name="alpha">
+      <label for="plotButton-{{ forloop.counter0 }}">{{ forloop.counter }}</label>
+      {% endfor %}
+    </div>
+    {% for item in pca_list %}
+        <div id="plotDiv-{{ forloop.counter0 }}" name="plotDiv-{{ forloop.counter0 }}"
+             data-plot-id="{{ forloop.counter0 }}" hidden
+             style="margin: 8px;border: inset #56988c;padding: 4px;border-radius: 4px;"></div>
+    {% endfor %}
+  </div>
+</div>
+<script>
+  let pcaData = {{ pca_list|safe }}
+  let groups = {{ groups|safe }}
+  for (let i = 0; i < pcaData.length; i++) {
+    let plotData = pcaData[i];
+    const group = groups[i];
+    //let sampleGroups = Object.values(JSON.parse(groups[i]))
+    let traceList = [];
+    for (let j = 0; j < Object.keys(plotData).length; j++){
+        let key = Object.keys(plotData)[j]
+        let trace = {
+          x: plotData[key].x,
+          y: plotData[key].y,
+          mode: 'markers',
+          type: 'scatter',
+          name: plotData[key][group],
+        };
+        traceList.push(trace);
+    }
+    var data = traceList;
+    Plotly.newPlot(`plotDiv-${i}`, data);
+  }
+
+    function getPlotElem(plotInd) {
+    return document.querySelector(`[data-plot-id="${plotInd}"]`);
+  }
+
+  let currentSlideInd = 0;
+  let currentSlideElem = getPlotElem(currentSlideInd);
+  currentSlideElem.hidden = false;
+  document.querySelector(`[id="plotButton-${currentSlideInd}"]`).checked = true;
+
+
+  function showPlot(plotInd) {
+    if (plotInd !== currentSlideInd) {
+      currentSlideElem.hidden = true;
+      currentSlideElem = getPlotElem(plotInd);
+      currentSlideElem.hidden = false;
+      currentSlideInd = plotInd;
+    }
+  }
+
+</script>
+{% endblock %}

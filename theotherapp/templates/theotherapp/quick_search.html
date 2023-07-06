@@ -1,0 +1,187 @@
+{% extends "theotherapp/base.html" %}
+{% block content %}
+<div class="container">
+  {% if sample_plot_form.non_field_errors %}
+    <div>
+      <strong>Error</strong>
+      {% for error in sample_plot_form.non_field_errors %}
+        <p>{{error}}</p>
+      {% endfor %}    </div>
+  {% endif %}
+  {% if patient_plot_form.non_field_errors %}
+    <div>
+      <strong>Error</strong>
+      {% for error in patient_plot_form.non_field_errors %}
+        <p>{{error}}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+  <div class="panel">Search by sample or patient ID or create plots based on the search results.</div>
+  <div style="display:flex; flex-direction:row; column-gap:24px; justify-content: center;">
+   <div class="quick-search-box">
+      <h3>By sample</h3>
+      <form method="get">
+        {{sample_id_form}}
+        <input type="submit" value="Search" name="sample_id_search_button" class="submit-button">
+        <h4>Plot parameters</h4>
+        <div class="form-panel">
+          <div style="display: flex; flex-direction: column; row-gap: 8px; height: 128px;">
+            <h5>Plot type</h5>
+              {{sample_plot_form.bar_pie_choice}}
+          </div>
+<!--          {{sample_plot_form.interactive.label_tag}}{{sample_plot_form.interactive}}-->
+          <div style="display: flex; flex-direction: row; column-gap: 8px; height: 160px;">
+            <div style="display: flex; flex-direction: column; width: 50%;">
+              <h5>Data</h5>
+              {{sample_plot_form.top.label_tag}}{{sample_plot_form.top}}
+              {{sample_plot_form.taxonomic_rank.label_tag}}{{sample_plot_form.taxonomic_rank}}
+            </div> <!--end inner column-->
+            <div style="display: flex; flex-direction: column; width: 50%;">
+              <h5>Labels</h5>
+                {{sample_plot_form.title.label_tag}}{{sample_plot_form.title}}
+                {{sample_plot_form.x_label.label_tag}}{{sample_plot_form.x_label}}
+                {{sample_plot_form.y_label.label_tag}}{{sample_plot_form.y_label}}
+            </div> <!--end inner column-->
+          </div> <!--end row-->
+          <div style="display: flex; flex-direction: column;">
+            <div class="accordion-wrapper" style="width:100%">
+              <div class="accordion">
+                <input type="checkbox" id="sample-label-accordion-cbx">
+                <label id=sample-accordion-lab"
+                       class="accordion-label"
+                       for="sample-label-accordion-cbx">
+                <h5 style="margin: 0px;">Graphics</h5>
+                </label>
+                <div class="accordion-content" style="display:flex; flex-direction: column;">
+                  {{sample_plot_form.width.label_tag}}{{sample_plot_form.width}}
+                  {{sample_plot_form.height.label_tag}}{{sample_plot_form.height}}
+                </div>
+              </div>
+            </div> <!--accordion-wrapper end-->
+          </div> <!--end row-->
+          <div style="display:flex; justify-content: center; height:64px;">
+            <input class="submit-button" type="submit" value="Plot" name="sample_id_plot_button">
+          </div>
+        </div><!--end panel-->
+      </form>
+    </div>
+    <div class="quick-search-box">
+      <h3>By patient</h3>
+      <form method="get">
+        {{patient_id_form}}
+        <input type="submit" value="Search" name="patient_id_search_button" class="submit-button">
+        <h4>Plot parameters</h4>
+          <div class="form-panel">
+            <div style="display: flex; flex-direction: column; row-gap: 8px; height: 128px;">
+              <h5>Plot type</h5>
+                {{patient_plot_form.bar_heatmap_choice}}
+              <div>
+                {{patient_plot_form.interactive.label_tag}}
+                {{patient_plot_form.interactive}}
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: row; column-gap: 8px; height: 160px;">
+              <div style="display: flex; flex-direction: column; width: 50%;">
+                <h5>Data</h5>
+                {{patient_plot_form.top.label_tag}}{{patient_plot_form.top}}
+                {% comment %} {{patient_plot_form.normalization.label_tag}}{{patient_plot_form.normalization}} {% endcomment %}
+                {{patient_plot_form.taxonomic_rank.label_tag}}{{patient_plot_form.taxonomic_rank}}
+              </div> <!--end inner column-->
+              <div style="display: flex; flex-direction: column; width: 50%;">
+                <h5>Labels</h5>
+                  {{patient_plot_form.title.label_tag}}{{patient_plot_form.title}}
+                  {{patient_plot_form.x_label.label_tag}}{{patient_plot_form.x_label}}
+                  {{patient_plot_form.y_label.label_tag}}{{patient_plot_form.y_label}}
+              </div> <!--end inner column-->
+            </div> <!--end row-->
+            <div style="display: flex; flex-direction: column;">
+              <div class="accordion-wrapper" style="width:100%">
+                <div class="accordion">
+                  <input type="checkbox" id="pat-label-accordion-cbx">
+                  <label id=pat-accordion-lab"
+                         class="accordion-label"
+                         for="pat-label-accordion-cbx">
+                  <h5 style="margin: 0px;">Graphics</h5>
+                  </label>
+                  <div class="accordion-content" style="display:flex; flex-direction: column;">
+                    {{patient_plot_form.colorscale.label_tag}}{{patient_plot_form.colorscale}}
+                    {{patient_plot_form.width.label_tag}}{{patient_plot_form.width}}
+                    {{patient_plot_form.height.label_tag}}{{patient_plot_form.height}}
+                  </div>
+                </div>
+              </div> <!--accordion-wrapper end-->
+            </div> <!--end row-->
+            <div style="display: flex; justify-content: center; height: 64px;">
+              <input class="submit-button" type="submit" value="Plot" name="patient_id_plot_button">
+            </div>
+          </div> <!--end tab-->
+      </form>
+    </div>
+  </div>
+  {% if result_table %}
+  <form>
+    <input type="submit" name="download_data" value="Download data in csv" class="submit-button">
+  </form>
+  <div style="overflow: scroll; max-height: 300px;">
+    <table>
+      <thead>
+        <tr>
+          {% for metadata in result_table.0.metadatarow_set.all %}
+          <td>{{metadata.category}}</td>
+          {% endfor %}
+          <td>Sample ID</td>
+          <td>Patient ID</td>
+          <td>Taxon</td>
+          <td>Count</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in result_table %}
+        {% for taxa in item.taxa_set.all %}
+          <tr>
+            {% for metadata in item.metadatarow_set.all %}
+            <td>{{metadata.value}}</td>
+            {% endfor %}
+            <td>{{item.sample_id}}</td>
+            <td>{{item.patient_id}}</td>
+            <td>
+              {{taxa.super_kingdom}} &rarr;
+              {{taxa.kingdom}} &rarr;
+              {{taxa.phylum}} &rarr;
+              {{taxa.klass}} &rarr;
+              {{taxa.order}} &rarr;
+              {{taxa.family}} &rarr;
+              {{taxa.genus}} &rarr;
+              {{taxa.species}} &rarr;
+            </td>
+            <td>{{taxa.count}}</td>
+          </tr>
+        {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  {% if no_result %}
+    <div>
+      <h3>No results.</h3>
+    </div>
+  {% endif %}
+</div>
+<script>
+  let patientStackedBarRadio = document.getElementById("id_patient-bar_heatmap_choice_0");
+  let patientHeatmapRadio = document.getElementById("id_patient-bar_heatmap_choice_1");
+  let patientColorscale = document.getElementById("id_patient-colorscale");
+  patientStackedBarRadio.addEventListener('change', function () {
+      if (this.checked) {
+        patientColorscale.disabled = true;
+      }
+  });
+  //NOOB solution :(
+  patientHeatmapRadio.addEventListener('change', function () {
+      if (this.checked) {
+        patientColorscale.disabled = false;
+      }
+  });
+</script>
+{% endblock %}

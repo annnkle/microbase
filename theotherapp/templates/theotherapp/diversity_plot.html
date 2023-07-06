@@ -1,0 +1,117 @@
+  {% extends "theotherapp/base.html" %}
+{% block content %}
+<div class="container">
+  <div style="display:flex;">
+    <div class="slideshow">
+      <h3>Alpha diversity</h3>
+      <div>
+        {% for item in alpha_list %}
+  <!--        <button onclick="showAlphaPlot({{ forloop.counter0 }})">{{ forloop.counter }}</button>-->
+          <input type="radio" onclick="showAlphaPlot({{ forloop.counter0 }})" id="alphaPlotButton-{{ forloop.counter0 }}"
+          name="alpha">
+          <label for="alphaPlotButton-{{ forloop.counter0 }}">{{ forloop.counter }}</label>
+        {% endfor %}
+      </div>
+      {% for item in alpha_list %}
+        <div id="alphaPlotDiv-{{ forloop.counter0 }}" hidden alpha-plot-id="{{ forloop.counter0 }}"
+        style="margin: 8px;border: inset #56988c;padding: 4px;border-radius: 4px;"></div>
+      {% endfor %}
+    </div>
+    <div class="slideshow">
+      <h3>Beta diversity</h3>
+      <div>
+        {% for item in beta_list %}
+          <input type="radio" onclick="showBetaPlot({{ forloop.counter0 }})" id="betaPlotButton-{{ forloop.counter0 }}"
+          name="beta">
+          <label for="betaPlotButton-{{ forloop.counter0 }}">{{ forloop.counter }}</label>
+        {% endfor %}
+      </div>
+      {% for item in beta_list %}
+        <div id="betaPlotDiv-{{ forloop.counter0 }}" hidden beta-plot-id="{{ forloop.counter0 }}"
+        style="margin: 8px;border: inset #56988c;padding: 4px;border-radius: 4px;"></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script>
+  let alphaData = {{ alpha_list|safe }}
+  let betaData = {{ beta_list|safe }}
+  let groups = {{ groups|safe }}
+  for (let i = 0; i < alphaData.length; i++) {
+    let plotData = alphaData[i];
+    var data = [];
+    for (group in plotData){
+      let trace = {
+        x: group,
+        y: plotData[group],
+        type: 'box',
+        name: group,
+      }
+      data.push(trace)
+    };
+      Plotly.newPlot(`alphaPlotDiv-${i}`, data);
+
+    let plotDataB = betaData[i];
+    if (plotDataB == "") {
+      continue;
+    } else {
+      let traceListB = []
+      for (group in plotDataB) {
+        let traceB = {
+          x: plotDataB[group][0],
+          y: plotDataB[group][1],
+          z: plotDataB[group][2],
+          name: group,
+          mode: 'markers',
+          type: 'scatter3d',
+          text: plotDataB[group].sample_id
+        };
+        traceListB.push(traceB);
+      };
+      var layout = { margin: {
+        l: 0,
+        r: 0,
+        b: 0,
+        t: 0
+      }};
+      Plotly.newPlot(`betaPlotDiv-${i}`, data=traceListB, layout);
+    }
+  }
+
+  function getAlphaPlotElem(plotInd) {
+    return document.querySelector(`[alpha-plot-id="${plotInd}"]`);
+  }
+
+  let currentAlphaSlideInd = 0;
+  let currentAlphaSlideElem = getAlphaPlotElem(currentAlphaSlideInd);
+  currentAlphaSlideElem.hidden = false;
+  document.querySelector(`[id="alphaPlotButton-${currentAlphaSlideInd}"]`).checked = true;
+
+  function showAlphaPlot(plotInd) {
+    if (plotInd !== currentAlphaSlideInd) {
+      currentAlphaSlideElem.hidden = true;
+      currentAlphaSlideElem = getAlphaPlotElem(plotInd);
+      currentAlphaSlideElem.hidden = false;
+      currentAlphaSlideInd = plotInd;
+    }
+  }
+
+  function getBetaPlotElem(plotInd) {
+    return document.querySelector(`[beta-plot-id="${plotInd}"]`);
+  }
+
+  let currentBetaSlideInd = 0;
+  let currentBetaSlideElem = getBetaPlotElem(currentBetaSlideInd);
+  currentBetaSlideElem.hidden = false;
+  document.querySelector(`[id="betaPlotButton-${currentBetaSlideInd}"]`).checked = true;
+
+  function showBetaPlot(plotInd) {
+    if (plotInd !== currentBetaSlideInd) {
+      currentBetaSlideElem.hidden = true;
+      currentBetaSlideElem = getBetaPlotElem(plotInd);
+      currentBetaSlideElem.hidden = false;
+      currentBetaSlideInd = plotInd;
+    }
+  }
+</script>
+{% endblock %}

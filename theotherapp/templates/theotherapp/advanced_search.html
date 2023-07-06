@@ -1,0 +1,194 @@
+{% extends "theotherapp/base.html" %}
+{% block content %}
+{% load static %}
+<div>
+  <form style="display: flex; flex-direction: column; justify-content: center;align-items: center;">
+    <h2>Advanced Search</h2>
+    <div style="display: flex;flex-direction: row;justify-content: center;column-gap: 10px;">
+      {% for formset in formset_list %}
+      <div id="{{ formset.id }}" class="advanced-search-form"  {% if formset.hidden == True %} hidden = "true" {% endif %}>
+        {% csrf_token %}
+        {% for form in formset %}
+        <div class="advanced-form-field">
+          {{ form }}
+        </div>
+        {% endfor %}
+          <button id={{ formset.id_button }} style="background: transparent;border: transparent;
+          color:white; font-size: 20;margin-top: 5px;"><i class="material-icons">add_circle</i></button>
+      </div>
+      {% endfor %}
+      <button id="add-form" class="add-form-button" ><i class="material-icons">add</i></button>
+    </div>
+    <input style="font-size: 15px;font-weight: bolder;width: 30%;padding: 8px;border-radius: 4px;margin-top: 20px;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);"type="submit" name="multisearch_button"
+    value="Submit">
+  </form>
+  <div class='panel'>Build your own query to get results that can be plotted or analysed.
+    To search by multiple terms in one category, separate terms with commas or commas and single spaces.
+  </div>
+</div>
+<script>
+//BOILERPLATE AHEAD!
+
+    const advancedFormField = document.getElementsByClassName("advanced-form-field");
+    const mainForm = document.getElementsByClassName("advanced-search-form");
+    const addAdvancedFormFieldBtn_1 = document.getElementById("button_formset_1");
+    const addAdvancedFormFieldBtn_2 = document.getElementById("button_formset_2");
+    const addAdvancedFormFieldBtn_3 = document.getElementById("button_formset_3");
+
+
+    const form0cat = Array.from(document.getElementsByName("form-0-category"));
+    const form0inp = Array.from(document.getElementsByName("form-0-user_input"));
+
+    function findLabelForControl(el) {
+       var idVal = el.id;
+       labels = document.getElementsByTagName('label');
+       for( var i = 0; i < labels.length; i++ ) {
+          if (labels[i].htmlFor == idVal)
+               return labels[i];
+       }
+    }
+
+    //change the ids and names of category dropdowns
+    for(const [index, element] of form0cat.entries()){
+        //label = findLabelForControl(element);
+        let str = '';
+        element.id = str.concat('form-', index, '-0', '-category');
+        element.name = str.concat('form-', index, '-0', '-category');
+        //label.htmlFor = element.id;
+    }
+
+    //change the ids and names of textfields
+    for(const [index, element] of form0inp.entries()){
+        //label = findLabelForControl(element);
+        let str = '';
+        element.id = str.concat('form-', index, '-0', '-user_input');
+        element.name = str.concat('form-', index, '-0', '-user_input');
+        //label.htmlFor = element.id;
+    }
+
+    const submitFormBtn = document.querySelector('[type="submit"]');
+
+    let formsCount = [0, 0, 0]
+
+    //removing form fields
+    function removeAdvancedFormField(mainFormInd, removeAdvancedFormFieldBtn, advancedFormField) {
+        advancedFormField.remove();
+        removeAdvancedFormFieldBtn.remove();
+        formsCount[mainFormInd]--;
+    }
+
+    //adding form fields
+    function spawnNewAdvancedFormField(mainFormInd, addAdvancedFormFieldBtn) {
+        const newAdvancedFormField = advancedFormField[0].cloneNode(true);
+        formsCount[mainFormInd]++;
+        for (const child of newAdvancedFormField.childNodes) {
+            if (child.id) {
+                let newId = `form-${mainFormInd}-${formsCount[mainFormInd]}`
+                if (child.id.includes("category")) {
+                    child.id = `${newId}-category`
+                }
+                if (child.id.includes("user_input")) {
+                    child.id = `${newId}-user_input`
+                }
+            }
+            if (child.name) {
+                let newName = `form-${mainFormInd}-${formsCount[mainFormInd]}`
+                if (child.name.includes("category")) {
+                    child.name = `${newName}-category`
+                }
+                if (child.name.includes("user_input")) {
+                    child.name = `${newName}-user_input`
+                }
+            }
+            if (child.htmlFor) {
+                let newHtmlFor = `form-${mainFormInd}-${formsCount[mainFormInd]}`
+                if (child.htmlFor.includes("category")) {
+                    child.htmlFor = `${newHtmlFor}-category`;
+                }
+                if (child.htmlFor.includes("user_input")) {
+                    child.htmlFor = `${newHtmlFor}-user_input`;
+                }
+            }
+        }
+        let btn = document.createElement("button");
+        btn.innerHTML = "x";
+        btn.name = "removeBtn-" + mainFormInd + "-" + mainFormCount;
+        btn.addEventListener("click", function (event) {
+          event.preventDefault();
+          removeAdvancedFormField(newAdvancedFormField, btn, newAdvancedFormField);
+        });
+        mainForm[mainFormInd].insertBefore(newAdvancedFormField, addAdvancedFormFieldBtn);
+        btn.classList.add('remove-field-button');
+        newAdvancedFormField.insertAdjacentElement('beforeend', btn);
+    }
+
+    addAdvancedFormFieldBtn_1.addEventListener("click", function (event) {
+        event.preventDefault();
+        spawnNewAdvancedFormField(0, addAdvancedFormFieldBtn_1);
+    });
+
+    addAdvancedFormFieldBtn_2.addEventListener("click", function (event) {
+        event.preventDefault();
+        spawnNewAdvancedFormField(1, addAdvancedFormFieldBtn_2);
+    });
+
+    addAdvancedFormFieldBtn_3.addEventListener("click", function (event) {
+        event.preventDefault();
+        spawnNewAdvancedFormField(2, addAdvancedFormFieldBtn_3);
+    });
+
+    const addFormBtn = document.querySelector("#add-form");
+    let mainFormCount = 1;
+
+    //removing forms
+    function removeForm(formset, removeFormBtn) {
+        formFields = formset.getElementsByClassName("advanced-form-field");
+        //remove all form fields except the first one
+        while (formFields.length > 1){
+          formFields[formFields.length - 1].remove()
+        }
+        formFields[0].getElementsByTagName("input")[0].value = "";
+
+        formset.hidden = true;
+        --mainFormCount;
+        const addFormsetButton = document.getElementById("add-form");
+        if (mainFormCount < 3 && addFormsetButton.hidden) {
+            addFormsetButton.hidden = false;
+        }
+    }
+
+    addFormBtn.addEventListener("click", function (event) {
+        event.preventDefault();
+        let formset = null;
+        mainFormCount++;
+        if (document.getElementById("formset_1").hidden == false && document.getElementById("formset_3").hidden == false) {
+            formset = document.getElementById("formset_2");
+        } else {
+            formset = document.getElementById(`formset_${mainFormCount}`);
+        }
+        if (formset)
+        {
+
+            formset.hidden = false;
+            formset.style.opacity = '0';
+            setTimeout(() => formset.style.opacity = '1', 100);
+
+
+            let btn = document.createElement("button");
+            btn.innerHTML = "x";
+            btn.name = "removeBtn-" + formset.id;
+            btn.addEventListener("click", function (event) {
+              event.preventDefault();
+              removeForm(formset, btn);
+            });
+            btn.classList.add('remove-form-button');
+            formset.insertAdjacentElement('afterbegin', btn);
+        }
+        if (mainFormCount == 3){
+            const addFormsetButton = document.getElementById("add-form");
+            addFormsetButton.hidden = true;
+        }
+    });
+</script>
+{% endblock %}

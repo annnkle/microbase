@@ -1,0 +1,109 @@
+{% extends "theotherapp/base.html" %}
+{% block content %}
+{% load static %}
+<div class="container">
+  <h2>Browse</h2>
+  <div class='panel'>Browse all sample records here. 
+    List can be sorted and filtered using the small panel below.</div>
+  <div style="background: #202020; display: flex; justify-content: center; margin:8px 32px 16px 32px;
+              padding: 16px; border-radius: 4px; width: 80%;">
+    <div id="data-list" style="width: inherit;">
+    <div>
+      <div style="display: flex;column-gap: 2px; padding: 4px 0px 4px 0px;">
+        <input type="text" id="search" value="Search..."/>
+        <span class="sort" data-sort="sample_id">Sort by sample_id</span>
+        <span class="sort" data-sort="patient_id">Sort by patient_id</span>
+      </div>
+      <div style="display: flex;flex-flow: wrap;row-gap: 4px;column-gap: 2px;">
+        {% for metadatarow in page_data.0.metadatarow_set.all %}
+          <span class="sort" data-sort="{{ metadatarow.category }}">Sort by {{ metadatarow.category }}</span>
+        {% empty %}
+          <span></span>
+        {% endfor %}
+
+      </div>
+    </div>
+    <div class="accordion-wrapper list">
+      {% for data in page_data %}
+      <div id="browse-accordion-{{forloop.counter0}}" class="accordion">
+        <input type="checkbox" id="browse-accordion-cbx-{{forloop.counter0}}"
+               name=browse-accordion-cbx">
+        <label id=browse-accordion-lab-{{forloop.counter0}}"
+               class="accordion-label"
+               for="browse-accordion-cbx-{{forloop.counter0}}">
+          <p class="patient_id">Patient {{ data.patient_id }}</p>
+          <p class="sample_id">Sample {{ data.sample_id }}</p>
+          {% for metadatarow in data.metadatarow_set.all %}
+            <p class="{{ metadatarow.category }}">{{ metadatarow.category }}: {{ metadatarow.value }}</p>
+          {% endfor %}
+        </label>
+        <div class="accordion-content" id="taxa-list-{{ forloop.counter0 }}">
+          <table>
+            <tbody class="list">
+              {% for taxon in data.taxa_set.all %}
+              <tr>
+                <td class="taxon">
+                  {{ taxon.super_kingdom }} &rarr;
+                  {{ taxon.kingdom }} &rarr;
+                  {{ taxon.phylum }} &rarr;
+                  {{ taxon.klass }} &rarr;
+                  {{ taxon.order }} &rarr;
+                  {{ taxon.family }} &rarr;
+                  {{ taxon.genus }} &rarr;
+                  {{ taxon.species }}
+                </td>
+                <td class="count">{{ taxon.count }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% if page %}
+  <div class="pagination">
+      {% if page.has_previous %}
+          <a href="?page={{ page.previous_page_number }}">previous</a>
+      {% endif %}
+
+      <span class="current-page">{{ page.number }}</span>
+
+      {% if page.has_next %}
+          <a href="?page={{ page.next_page_number }}">next</a>
+      {% endif %}
+  </div>
+{% endif %}
+</div>
+<script>
+
+  const metacats = {{ metadata_categories|safe }};
+
+  const options = {
+    valueNames: Array.prototype.concat([ 'sample_id', 'patient_id' ], metacats),
+  };
+
+  const dataList = new List('data-list', options);
+
+  function searchFunction (searchString, columns) {
+    searchString = searchString.toLowerCase();
+    dataList.items.forEach(item => {
+      let found = false;
+      columns.forEach(column => {
+        const valLower = item.values()[column].toLowerCase();
+        if (valLower.indexOf(searchString) !== -1)
+          found = true;
+        item.found = found;
+      })
+    })
+  }
+
+  const searchElem = document.getElementById("search");
+  searchElem.oninput = (e) => {
+    const searchString = e.target.value;
+    dataList.search(searchString, searchFunction);
+  }
+</script>
+{% endblock %}

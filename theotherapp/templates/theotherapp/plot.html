@@ -1,0 +1,70 @@
+{% extends "theotherapp/base.html" %}
+{% block content %}
+{% load static %}
+<div class="container">
+  {% if plot %}
+  <img
+    src="{% get_media_prefix %}{{plot}}"
+    style="margin: 8px; border: inset #56988c; padding: 4px; border-radius: 4px"
+  />
+  {% else %}
+  <!--    <div class="plot" id="plot" style="margin: 8px;border: inset #56988c;padding: 4px;border-radius: 4px;"></div>-->
+  <iframe
+    src="{% url 'theotherapp:view_interactive_plot' %}?file={{ html_file_name }}"
+    width="800px"
+    height="600px"
+  ></iframe>
+  {% endif %}
+  <form>
+    <input
+      type="submit"
+      name="download_plot_data"
+      value="Download plot data in csv"
+      class="submit-button"
+      style="width: auto"
+    />
+  </form>
+</div>
+<!--{{plot_json|json_script:"figure"}}-->
+<script>
+  // const rawFigureData = document.getElementById("figure").textContent;
+  //let figure = JSON.parse(JSON.parse(rawFigureData));
+
+  // figure.x.data.forEach(barPlotData => {
+  //     if (!Array.isArray(barPlotData.x)) barPlotData.x = [barPlotData.x.toString()];
+  //     //barPlotData.marker.line.width = 1;
+  //     //barPlotData.marker.line.color = 'black';
+  //     if (!Array.isArray(barPlotData.y)) barPlotData.y = [barPlotData.y];
+  // })
+
+  // figure.x.layout.xaxis.autotypenumbers = 'strict';
+
+  // const plotDiv = document.getElementById("plot");
+  // Plotly.newPlot(plotDiv.id, figure.x);
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+  let plotImgs = [].slice.call(document.getElementsByTagName("img"));
+  let plotNames = plotImgs
+    .map(function (el) {
+      return el.src;
+    })
+    .join(", ");
+
+  function deleteFiles() {
+    console.log("deleting files...");
+    fetch("/delete_temporary_plot_files", {
+      method: "POST",
+      body: JSON.stringify(plotNames),
+      headers: {
+        Accept: "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+    });
+  }
+  setTimeout(deleteFiles, 2000);
+</script>
+{% endblock %}

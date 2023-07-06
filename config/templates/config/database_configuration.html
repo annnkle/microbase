@@ -1,0 +1,78 @@
+{% extends "theotherapp/base.html" %}
+{% block content %}
+<div class="container">
+  <div class="large-panel">
+    <form id="form-container" method="POST">
+      {% csrf_token %}
+      {{ formset.management_form }}
+      {% for form in formset %}
+        <div class="subform">
+          {{ form }}
+        </div>
+      {% endfor %}
+      <button id="add-form" type="button">Add category</button>
+      <div style="display:flex; justify-content:center">
+        <input type="submit" name="config_button" value="Submit">
+      </div>
+    </form>
+  </div>
+  <hr>
+  <div class = "panel">To configure the database please enter category names and their types.
+    Maximum of 16 entries are allowed. The "allowed values" field activates when "choices"
+    category type is selected. Enter choice values there, separated by commas or commas with spaces.
+  </div>
+  <div class="messages info">
+    <h3>After clicking "submit" the site will need to be manually reloaded, because the database is being
+      configured and the connection will reset.</h3>
+  </div>
+</div>
+<script>
+  let form = document.querySelectorAll(".subform")
+  let container = document.querySelector("#form-container")
+  let addButton = document.querySelector("#add-form")
+  let totalForms = document.querySelector("#id_form-TOTAL_FORMS")
+  let maxForms = document.querySelector("#id_form-MAX_NUM_FORMS")
+  let formNum = form.length-1
+
+  addButton.addEventListener('click', addForm)
+    let allowedValues = document.querySelectorAll("[name$='allowed_values']");
+  allowedValues.forEach( item => {
+    item.disabled = true;
+  });
+
+  function disableBox(item) {
+      let allowedValBox = item.querySelector("[name$='attribute_type']");
+      allowedValBox.addEventListener('change', function () {
+          if (allowedValBox.value == 'choices') {
+              let el = item.querySelectorAll("[name$='allowed_values']")[0];
+              el.disabled = false;
+          } else {
+              let el = item.querySelectorAll("[name$='allowed_values']")[0];
+              el.disabled = true;
+          }
+      });
+  }
+
+  let subforms = document.querySelectorAll("[class$='subform']");
+  subforms.forEach(item => disableBox(item));
+
+  function addForm(e){
+      e.preventDefault()
+
+      let newForm = form[0].cloneNode(true)
+      let formRegex = RegExp(`form-(\\d){1}-`,'g')
+
+      formNum++;
+      newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${formNum}-`)
+      container.insertBefore(newForm, addButton)
+
+      disableBox(newForm);
+
+      totalForms.setAttribute('value', `${formNum+1}`)
+      if (totalForms.value == maxForms.value){
+        addButton.disabled = true;
+      }
+  }
+
+</script>
+{% endblock %}

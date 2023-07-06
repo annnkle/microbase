@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'theotherapp/css/style.css' %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script type="text/javascript" src="{% static '/theotherapp/js/jquery-3.6.3.js' %}"></script>
+    <script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@200&family=Titillium+Web:wght@400;600;700&display=swap');
+</style>
+    <meta charset="utf-8">
+    <title>THEOTHERPROJECT</title>
+  </head>
+  <body>
+  <div class = "navbar">
+    <ul>
+      <img src="{% static 'theotherapp/img/logo.svg' %}" style="width: 7%; margin: 0px 16px 0px 16px;">
+      <li><a href="{% url 'theotherapp:index' %}">  home</a></li>
+      <li><a href="{% url 'theotherapp:browse' %}">  browse</a></li>
+      <li><a href="{% url 'theotherapp:quick_search' %}">  quick search</a></li>
+      <li><a href="{% url 'theotherapp:advanced_search' %}">  advanced search</a></li>
+      <li><a href="{% url 'theotherapp:upload' %}">  upload</a></li>
+      <li><a href="{% url 'theotherapp:multiple_upload' %}">  multiple upload</a></li>
+      {% if user.is_authenticated %}
+      <li style="margin-left: auto;"><a style="padding-right: 4px;">{{user}}</a></li>
+      <a style="font-size: 16px;color: aquamarine;align-self: end;padding: 4px;"
+         href="{% url 'user:logout' %}">  log out</a>
+      <a style="font-size: 16px;color: aquamarine;align-self: end;padding: 4px;"
+         href="{% url 'user:password_change' %}">  change password</a>
+      {% if user.is_staff %}
+        <a style="font-size: 16px;color: aquamarine;align-self: end;padding: 4px;"
+          href="{% url 'admin:index' %}">  admin</a>
+      {% endif %}
+      {% else %}
+      <li style="margin-left: auto;"><a href="{% url 'user:login' %}">  log in</a></li>
+      {% endif %}
+    </ul>
+  </div>
+  {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+        <h3 class="{{ message.tags }}">{{ message }}</h3>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% block content %}{% endblock content %}
+  </body>
+</html>

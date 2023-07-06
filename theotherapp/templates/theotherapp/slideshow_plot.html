@@ -1,0 +1,100 @@
+{% extends "theotherapp/base.html" %}
+{% block content %}
+{% load static %}
+<div class="container">
+  <div class="slideshow" style="margin-top: 16px">
+    <div>
+      {% for plot, html, state in plot_list %}
+      <input
+        type="radio"
+        onclick="showPlot({{ forloop.counter0 }})"
+        id="plotButton-{{ forloop.counter0 }}"
+        name="alpha"
+      />
+      <label for="plotButton-{{ forloop.counter0 }}"
+        >{{ forloop.counter }}</label
+      >
+      {% endfor %}
+    </div>
+    <div>
+      {% for plot, html, state in plot_list %} {% if state == "on" %}
+      <div
+        hidden
+        data-plot-id="{{ forloop.counter0 }}"
+        id="interactive-plot-id{{forloop.counter0}}"
+        class="interactive-plot"
+        style="
+          margin: 8px;
+          border: inset #56988c;
+          padding: 4px;
+          border-radius: 4px;
+        "
+      >
+        <iframe
+          src="{% url 'theotherapp:view_interactive_plot' %}?file={{ html }}"
+          width="800"
+          height="600"
+        ></iframe>
+      </div>
+      {% else %}
+      <div
+        hidden
+        data-plot-id="{{ forloop.counter0 }}"
+        id="static-plot-id{{forloop.counter0}}"
+        class="static-plot"
+        style="
+          margin: 8px;
+          border: inset #56988c;
+          padding: 4px;
+          border-radius: 4px;
+        "
+      >
+        <img src="{% get_media_prefix %}{{plot}}" />
+      </div>
+      {% endif %} {% endfor %}
+    </div>
+  </div>
+  <form>
+    <input
+      type="submit"
+      name="download_plot_data"
+      value="Download plot data in csv"
+      class="submit-button"
+      style="width: auto"
+    />
+  </form>
+</div>
+<script>
+  //let figures = {{ json_list|safe }};
+
+  //figures.forEach(figure =>
+  //  figure.x.data.forEach(barPlotData => {
+  //   if (!Array.isArray(barPlotData.x)) barPlotData.x = [barPlotData.x];
+  //    if (!Array.isArray(barPlotData.y)) barPlotData.y = [barPlotData.y];
+  //  })
+  //);
+
+  //interactiveDivs = document.getElementsByClassName("interactive-plot")
+  //figures.forEach((figure, index) => {
+  //  Plotly.newPlot(interactiveDivs[index].id, figure.x);
+  //})
+
+  function getPlotElem(plotInd) {
+    return document.querySelector(`[data-plot-id="${plotInd}"]`);
+  }
+
+  let currentSlideInd = 0;
+  let currentSlideElem = getPlotElem(currentSlideInd);
+  currentSlideElem.hidden = false;
+  document.querySelector(`[id="plotButton-${currentSlideInd}"]`).checked = true;
+
+  function showPlot(plotInd) {
+    if (plotInd !== currentSlideInd) {
+      currentSlideElem.hidden = true;
+      currentSlideElem = getPlotElem(plotInd);
+      currentSlideElem.hidden = false;
+      currentSlideInd = plotInd;
+    }
+  }
+</script>
+{% endblock %}

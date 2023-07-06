@@ -1,0 +1,230 @@
+{% extends "theotherapp/base.html" %}
+{% block content %}
+<div class="container">
+  <div style="display:flex; margin: 24px; width: 80%;">
+    <div class="accordion-wrapper" style="width:100%;">
+      <div class="accordion">
+        <input type="checkbox" id="search_results_cbx"
+               name=browse-accordion-cbx">
+        <label id="search_results_lab"
+               class="accordion-label"
+               for="search_results_cbx">
+          <h5>Search resutls</h5>
+        </label>
+        <div class="accordion-content" style="display: flex; justify-content: center;">
+          {% for table in tables_list %}
+            <strong>{{ forloop.counter0 }}.  </strong>
+            {% if table.0 == 'visible' %}
+              <table data-table data-ind="{{forloop.counter0}}" style="width:50%">
+                  <thead>
+                    <tr>
+                      <td>Patient ID</td>
+                      <td>Sample ID</td>
+                    </tr>
+                  </thead>
+              {% with table_ind=forloop.counter0 %}
+              {% for sample in table.1 %} <!-- tables list consists of tuples (visibility, queryset) -->
+                  <tr>
+                    <td>{{ sample.patient_id }}</td>
+                    <td>{{ sample.sample_id }}</td>
+                    <td><input id="cbx_{{ table_ind }}_{{ forloop.counter0 }}" type="checkbox"
+                               data-table-cbx style="display:none;">
+                        <label for="cbx_{{ table_ind }}_{{ forloop.counter0 }}"></label>
+                    </td>
+                  </tr>
+                  {% with subtable_ind=forloop.counter0 %}
+                  {% for taxon in sample.taxa_set.all %}
+                    <tr hidden data-subtable-ind="{{ subtable_ind }}">
+                      <td>
+                        {{taxon.super_kingdom}} &rarr;
+                        {{taxon.kingdom}} &rarr;
+                        {{taxon.phylum}} &rarr;
+                        {{taxon.klass}} &rarr;
+                        {{taxon.order}} &rarr;
+                        {{taxon.family}} &rarr;
+                        {{taxon.genus}} &rarr;
+                        {{taxon.species}} &rarr;
+                      </td>
+                      <td>{{taxon.count}}</td>
+                    </tr>
+                  {% endfor %}
+                  {% endwith %}
+              {% endfor %}
+              {% endwith %}
+            </table>
+            {% else %}
+              <h4> No results.</h4>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div style="display: flex; justify-content: center;">
+        <form>
+          <input type="submit" name="download_data_button" value="Download data in csv" class="submit-button">
+        </form>
+      </div>
+    </div>
+  </div>
+  {% if warning %}
+    <div style="background: #000; width: 100%; height: 100%; position: absolute; opacity: 0.7; z-index: 1;"></div>
+    <div style="background: #2f4846; width: 500px; height: 300px; z-index: 2; position: absolute;
+                box-shadow: 3px 3px 5px black;padding: 16px;border-radius: 4px;">
+      <h3>{{ warning }}</h3>
+      <div style="display: flex;">
+        <form method='GET'>
+          <input name="warning_button_yes" type='submit' value="Yes" class="submit-button">
+        </form>
+        <form method='GET'>
+          <input name="warning_button_no" type='submit' value="No" class="submit-button">
+        </form>
+      </div>
+    </div>
+  {% endif %}
+  {% for plot_form in plot_forms %}
+    {% if plot_form.non_field_errors %}
+        <strong>Form {{plot_form.prefix}}: {{plot_form.non_field_errors}}</strong>
+    {% endif %}
+  {% endfor %}
+  <div class="wrapper">
+    <input class="radio" id="one" name="group" type="radio" checked>
+    <input class="radio" id="two" name="group" type="radio">
+    <input class="radio" id="three" name="group" type="radio">
+    <div class="tabs" style="width: 100%;">
+      <label class="tab" id="one-tab" for="one">Plot</label>
+      <label class="tab" id="two-tab" for="two">α-, β-diversity</label>
+      <label class="tab" id="three-tab" for="three">PCA</label>
+    </div>
+    <div class="panels">
+      <div class="tab-panel" id="one-panel">
+        <form>
+          <div style="display: flex; column-gap: 16px;">
+            {% for plot_form in plot_forms %}
+              <div class="form-panel" style="margin-top:0px; background:#18524e; width: min-content;">
+                <strong>{{ plot_form.prefix }}</strong>
+                <div>
+                  <div class="form-panel-column">
+                    <h5>Plot type</h5>
+                    {{plot_form.bar_heatmap_choice}}
+                  </div>
+                  {{plot_form.interactive.label_tag}}{{plot_form.interactive}}
+                </div>
+                <div class="form-panel-row">
+                  <div class="form-panel-column" style="width: 30%">
+                    <h5>Data</h5>
+                    {{plot_form.top.label_tag}}{{plot_form.top}}
+                    {{plot_form.group_by.label_tag}}{{plot_form.group_by}}
+                    {% comment %} {{plot_form.normalization.label_tag}}{{plot_form.normalization}} {% endcomment %}
+                    {{plot_form.taxonomic_rank.label_tag}}{{plot_form.taxonomic_rank}}
+                    <span>
+                      {{plot_form.pool.label_tag}}{{plot_form.pool}}
+                    </span>
+                  </div> <!--end inner column-->
+                  <div class="form-panel-column" style="width: 75%">
+                    <h5>Labels</h5>
+                    {{plot_form.title.label_tag}}{{plot_form.title}}
+                    {{plot_form.x_label.label_tag}}{{plot_form.x_label}}
+                    {{plot_form.y_label.label_tag}}{{plot_form.y_label}}
+                  </div> <!--end inner column-->
+                </div> <!--end row-->
+                <div class="form-panel-row" style="display: flex;">
+                  <label>Relative (percentages)</label>
+                  <div class="toggle" style="display:block;">
+                    {{plot_form.abs_rel}}{{plot_form.abs_rel.label_tag}}
+                  </div>
+                  <label>Absolute (counts)</label>
+                </div>
+                <div class="form-panel-row">
+                  <div class="accordion-wrapper" style="width: 100%">
+                    <div class="accordion">
+                      <input type="checkbox" id="graphics-accordion-cbx-{{forloop.counter0}}">
+                      <label id=graphics-accordion-lab-{{forloop.counter0}}"
+                             class="accordion-label"
+                             for="graphics-accordion-cbx-{{forloop.counter0}}">
+                      <h5 style="margin: 0px;">Graphics</h5>
+                      </label>
+                      <div class="accordion-content" style="display: flex; flex-direction: column;">
+                        {{plot_form.colorscale.label_tag}}{{plot_form.colorscale}}
+                        {{plot_form.width.label_tag}}{{plot_form.width}}
+                        {{plot_form.height.label_tag}}{{plot_form.height}}
+                      </div>
+                    </div>
+                  </div> <!--accordion-wrapper end-->
+                </div> <!--end row-->
+              </div>
+            {% endfor %}
+          </div>
+          <div style="display:flex; justify-content: center;">
+            <input type="submit" value="Plot" name="advanced_plot_button" style="width: 90%; margin: 16px;" class="submit-button">
+          </div>
+        </form>
+      </div> <!--end tab-->
+      <div class="tab-panel" id="two-panel">
+        <form>
+          <div style="display: flex; column-gap: 16px;">
+          {% for abdiversity_form in abdiversity_forms %}
+            <div class="form-panel" style="margin-top:0px; background:#18524e; display: flex; flex-direction:column;">
+              <strong>{{ abdiversity_form.prefix }}</strong>
+              {{ abdiversity_form }}
+            </div>
+          {% endfor %}
+          </div>
+          <div style="display:flex; justify-content: center;">
+            <input type="submit" name="calculate_diversities_button" value="Calculate diversities" class="submit-button">
+          </div>
+        </form>
+      </div> <!--end tab-->
+      <div class="tab-panel" id="three-panel">
+        <form>
+          <div style="display: flex; column-gap: 16px;">
+          {% for pca_form in pca_forms %}
+            <div class="form-panel" style="margin-top:0px; background:#18524e; display: flex; flex-direction:column;">
+              <strong>{{ pca_form.prefix }}</strong>
+              {{ pca_form }}
+            </div>
+          {% endfor %}
+          </div>
+          <div style="display:flex; justify-content: center;">
+            <input type="submit" name="calculate_pca_button" value="Calculate PCA" class="submit-button">
+          </div>
+        </form>
+      </div> <!--end tab-->
+    </div>
+  </div>
+</div>
+<script>
+  let stackedRadios = document.querySelectorAll(`[id*="bar_heatmap_choice_0"]`)
+  let heatmapRadios = document.querySelectorAll(`[id*="bar_heatmap_choice_1"]`)
+
+  stackedRadios.forEach(item => {
+    item.addEventListener('change', function () {
+      let id = this.id.split("-")[0]
+        if (this.checked) {
+          document.querySelectorAll(`[id^=${id}][id$='colorscale'`)[0].disabled = true;
+        }
+    });
+  });
+  heatmapRadios.forEach(item => {
+    item.addEventListener('change', function () {
+      let id = this.id.split("-")[0]
+        if (this.checked) {
+          document.querySelectorAll(`[id^=${id}][id$='colorscale'`)[0].disabled = false;
+        }
+    });
+  });
+
+  const tables = document.querySelectorAll("[data-table]");
+  tables.forEach(table => {
+    const tableInd = table.getAttribute("data-ind");
+    table.querySelectorAll("[data-table-cbx]").forEach((tableCbx, subTableInd) => {
+      tableCbx.addEventListener('change', event => {
+        const subTableRows = table.querySelectorAll(`[data-subtable-ind='${subTableInd}']`);
+        subTableRows.forEach(subrow => {
+          if (subrow.hidden) subrow.hidden = false;
+          else subrow.hidden = true;
+        })
+      })
+    })
+  });
+
+</script>
+{% endblock %}

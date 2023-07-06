@@ -1,0 +1,40 @@
+{% extends "theotherapp/base.html" %}
+{% block content %}
+<div class="container">
+  {% if form.non_field_errors %}
+    <div>
+      <strong>Error</strong>
+      {% for error in form.non_field_errors %}
+        <p>{{error}}</p>
+      {% endfor %}    </div>
+  {% endif %}
+  <h2>Upload sample metadata and files</h2>
+  <div class="panel">
+      <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div style="display: flex; flex-direction: column;">
+        {{ form }}
+      </div>
+      <div style="display: flex; justify-content: center;">
+        <input class="submit-button" type="submit" name="upload_data" value="Upload">
+      </div>
+      </form>
+  </div>
+  <div class='panel'>
+    To upload a sample please fill the form with appropiate metadata and attach taxonomic file.
+    Accepted file formats are:
+    
+
+  </div>
+</div>
+<script>
+  if (document.getElementsByClassName("success")){
+    document.addEventListener(`click`, hideMessage);
+    function hideMessage(event) {
+      successMessage = document.getElementsByClassName("success")[0]
+      successMessage.style.opacity = '0';
+      setTimeout(() => successMessage.remove(), 1000);
+    }
+  }
+</script>
+{% endblock %}
