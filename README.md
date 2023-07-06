@@ -30,26 +30,28 @@
 
    `python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'`
 
-6. Provide configuration for your database in the `settings.py` file (or leave as it is for default, lightweight `sqlite` db)
+6. Adjust `ALLOWED_HOSTS` in `.env` file if needed
 
-   - `MySQL` and `MariaDB` example:
+7. Provide configuration for your database in the `settings.py` file (or leave as it is for default, lightweight `sqlite` db)
 
-   - Install the `mysqlclient` package
+   - `MySQL` and `MariaDB`:
 
-     `pip install mysqlclient`
+     - Install the `mysqlclient` package
 
-   - example configuration in `settings.py`:
+       `pip install mysqlclient`
 
-     ```{python}
-     'microbase': {
-         'ENGINE': 'django.db.backends.mysql',
-         'NAME': 'your_db_name',
-         'USER': 'your_user',
-         'PASSWORD': 'your_password',
-         'HOST': 'localhost',
-         'PORT': '3306'
-     },
-     ```
+     - example configuration in `settings.py`:
+
+       ```{python}
+       'microbase': {
+             'ENGINE': 'django.db.backends.mysql',
+             'NAME': 'your_db_name',
+             'USER': 'your_user',
+             'PASSWORD': 'your_password',
+             'HOST': 'localhost',
+             'PORT': '3306'
+       },
+       ```
 
    - `PostgreSQL`:
 
@@ -72,13 +74,17 @@
 
    - For more information refer: [Django db configuration documentation](https://docs.djangoproject.com/en/4.1/ref/databases/)
 
-7. Apply database migrations
+8. Apply database migrations
 
    `python manage.py migrate`
 
-8. Create admin user
+9. Create admin user
 
    `python manage.py createsuperuser`
+
+10. Collect static files
+
+    `python manage.py collectstatic`
 
 ## Running
 
