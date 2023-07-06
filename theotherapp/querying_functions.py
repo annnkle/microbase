@@ -10,6 +10,13 @@ from .models import MetadataRow, PatientSampleIDs, Taxa
 ############
 ################
 
+
+def extract_values(string):
+    pattern = r'\b\s*([^,\s][^,]*[^,\s])\s*\b'
+    matches = re.findall(pattern, string)
+    return matches
+
+
 def handle_query(query_dict, categories, format='queryset', prefix=None):
     queryset = PatientSampleIDs.objects.all()
 
@@ -87,9 +94,9 @@ def parse_form_input(user_input):
         if k.endswith("category"):
             cat = v
         elif k.endswith("user_input"):
-            val = v
-            if "," in val:
-                val = val.replace(" ", "").split(",")
+            val = extract_values(v)
+            if len(val) == 1:
+                val = val[0]
         else:
             continue
         if cat and val:
