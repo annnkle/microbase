@@ -30,9 +30,7 @@
 
    `python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'`
 
-6. Adjust `ALLOWED_HOSTS` in `.env` file if needed
-
-7. Provide configuration for your database in the `settings.py` file (or leave as it is for default, lightweight `sqlite` db)
+6. Provide configuration for your database in the `settings.py` file (or leave as it is for default, lightweight `sqlite` db)
 
    - `MySQL` and `MariaDB`:
 
@@ -74,17 +72,17 @@
 
    - For more information refer: [Django db configuration documentation](https://docs.djangoproject.com/en/4.1/ref/databases/)
 
-8. Apply database migrations
+7. Apply database migrations
 
    `python manage.py migrate`
 
-9. Create admin user
+8. Create admin user
 
    `python manage.py createsuperuser`
 
-10. Collect static files
+9. Collect static files
 
-    `python manage.py collectstatic`
+   `python manage.py collectstatic`
 
 ## Running
 
