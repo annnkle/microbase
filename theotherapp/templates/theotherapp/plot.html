@@ -1,6 +1,4 @@
-{% extends "theotherapp/base.html" %}
-{% block content %}
-{% load static %}
+{% extends "theotherapp/base.html" %} {% block content %} {% load static %}
 <div class="container">
   {% if plot %}
   <img
@@ -47,23 +45,31 @@
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   }
-  let plotImgs = [].slice.call(document.getElementsByTagName("img"));
-  let plotNames = plotImgs
-    .map(function (el) {
-      return el.src;
-    })
-    .join(", ");
+
+  let plot = "";
+  {% if plot %}
+    plot = "{{ plot }}";
+  {% endif %}
+
+  let html_file_name = "";
+  {% if html_file_name %}
+    html_file_name = "{{ html_file_name }}";
+  {% endif %}
+
+  const plotNames = [html_file_name, plot].filter(pN => pN);
 
   function deleteFiles() {
     console.log("deleting files...");
-    fetch("/delete_temporary_plot_files", {
-      method: "POST",
-      body: JSON.stringify(plotNames),
-      headers: {
-        Accept: "application/json",
-        "X-CSRFToken": getCookie("csrftoken"),
-      },
-    });
+    plotNames.forEach(pN => {
+      fetch("/delete_temporary_plot_files", {
+        method: "POST",
+        body: pN,
+        headers: {
+          Accept: "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+      });
+    })
   }
   setTimeout(deleteFiles, 2000);
 </script>

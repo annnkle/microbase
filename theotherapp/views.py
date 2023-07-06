@@ -1,4 +1,7 @@
 import json
+import re
+import shutil
+
 import pandas as pd
 from django.conf import settings
 from django.contrib import messages
@@ -684,23 +687,31 @@ def pca_view(request):
 
 # FIXME fetch does not go through
 def delete_temporary_plot_files(request):
-    filename = json.loads(request.body.decode("utf-8")).split('/')[-1].rstrip("_plot.svg")
     from pathlib import Path
+    
+    def remove_extension(fname):
+        match = re.search(r"^(.*?)_plot\.", fname)
+        return match.group(1) if match else re.sub(r"\.\w+$", "", fname)
+
+    filename = request.body.decode("utf-8")
+    filename = filename.split("/")[-1]
+    filename = remove_extension(filename)
 
     media_dir = Path(settings.MEDIA_ROOT)
 
-    extensions = [".csv", "_plot.svg", "_plot.json"]
+    extensions = [".csv", "_plot.svg", "_plot.json", "_plot.html", "_plot_files"]
     removed = []
     not_found = []
     for ext in extensions:
         filename_with_ext = f"{filename}{ext}"
         filepath = media_dir / filename_with_ext
-        try:
-            filepath.unlink()
+        if filepath.exists():
+            if filepath.is_dir():
+                shutil.rmtree(filepath)
+            else:
+                filepath.unlink()    
             removed.append(filename_with_ext)
-        except FileNotFoundError:
-            pass
-
+            
     if not removed:
         return HttpResponseNotFound()
     
