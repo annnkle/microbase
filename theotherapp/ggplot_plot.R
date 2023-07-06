@@ -75,28 +75,17 @@ print("Creating plots...")
 # Do work based on the passed arguments
 for (i in 1:length(files)) {
 
-  print("###########DEBUG files:")
-  print(files)
-
   data = files[[i]]
   if ("percentage" %in% colnames(data)) {
     data$percentage <- as.double(data$percentage)
   }
-
-  print("############# DEBUG abs_rel:")
-  print(argv$abs_rel[i])
 
   data_column_name <- 'count'
   if (argv$abs_rel[i] == "relative") {
     data_column_name <- "percentage"
   }
 
-  print("################ DEBUG data_column_name:")
-  print(data_column_name)
-
-  print("############# DEBUG taxonomic_rank:")
   taxonomic_rank <- argv$taxonomic_rank[i];
-  print(taxonomic_rank)
 
   pool <- argv$pool[i]
   if (pool == "off"){
@@ -105,15 +94,9 @@ for (i in 1:length(files)) {
     raw_xgroup = argv$groupcat[i]
   }
 
-  print("###############DEBUG raw_xgroup")
-  print(raw_xgroup)
-
   xgroup <- parse(text=raw_xgroup)
 
   raw_groupby <- argv$groupcat[i]
-  print("###############DEBUG raw_groupby")
-  print(raw_groupby)
-
   groupby <- parse(text=raw_groupby)
 
 
