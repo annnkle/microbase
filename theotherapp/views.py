@@ -1,5 +1,4 @@
 import json
-
 import pandas as pd
 from django.conf import settings
 from django.contrib import messages
@@ -160,6 +159,14 @@ def multiple_data_upload_view(request):
    
         except AppError as e:
             messages.error(request, str(e))
+
+    if request.GET.get('download_metadata_template'):
+        category_list =['filename', 'sample_id', 'patient_id']+list(Category.objects.values_list('name', flat=True))
+        df = pd.DataFrame(columns=category_list)
+        csv_file = df.to_csv(sep=";", index=False)
+        response = HttpResponse(csv_file, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=metadata_template.csv'
+        return response
 
     #this template and the data_upload template are the exact same for now
     return render(request, 'theotherapp/multiple_data_upload.html', context={'form': form})
