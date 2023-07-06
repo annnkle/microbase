@@ -22,7 +22,15 @@
 
    `Rscript setup_r_env.R`
 
-4. Provide configuration for your database in the `settings.py` file (or leave as it is for default, lightweight `sqlite` db)
+4. Create `.env` file from `.env.template`
+
+   `cp .env.template .env`
+
+5. Generate `SECRET_KEY` and put it in `.env` file
+
+   `python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'`
+
+6. Provide configuration for your database in the `settings.py` file (or leave as it is for default, lightweight `sqlite` db)
 
    - `MySQL` and `MariaDB` example:
 
@@ -64,9 +72,13 @@
 
    - For more information refer: [Django db configuration documentation](https://docs.djangoproject.com/en/4.1/ref/databases/)
 
-5. Apply database migrations
+7. Apply database migrations
 
    `python manage.py migrate`
+
+8. Create admin user
+
+   `python manage.py createsuperuser`
 
 ## Running
 
