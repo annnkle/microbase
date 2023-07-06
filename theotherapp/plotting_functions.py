@@ -1,6 +1,7 @@
 import pandas as pd
 from django.forms import model_to_dict
 
+
 def handle_plot_query(sample_data, parameters):
     data_parameters, plot_parameters = parse_parameters(parameters)
     df = create_dataframe_from_sample_list(sample_data, data_parameters)
@@ -55,7 +56,13 @@ def handle_plot_query(sample_data, parameters):
                     df['percentage'] = df['count']/df.groupby('sample_id')['count'].transform('sum').values
                     # df['count'] = df['percentage']
              else:
-                df = df.sort_values([group_by, 'count'], ascending=False).groupby(by=group_by).head().reset_index(drop=True)
+                df.sort_values(
+                    [group_by, 'count'], ascending=False
+                ).groupby(
+                    by=[group_by, 'taxon'], as_index=False
+                ).sum().sort_values(
+                    [group_by, 'count'], ascending=False
+                ).groupby(group_by).head(int(data_parameters['top']))
                 if data_parameters.get('abs_rel') == 'relative':
                     df['percentage'] = df.groupby(by=group_by)['count'].transform(lambda x: x / x.sum())
              top_too_much = True
@@ -165,7 +172,13 @@ def leave_only_top_taxa(df, top):
 
 #it can be merged with the above function really
 def pooled_leave_only_top_taxa(df, top, group_by):
-    return df.sort_values([group_by, 'count'], ascending=False).groupby(by=group_by).head(int(top)).reset_index(drop=True)
+    return df.sort_values(
+        [group_by, 'count'], ascending=False
+    ).groupby(
+        by=[group_by, 'taxon'], as_index=False
+    ).sum().sort_values(
+        [group_by, 'count'], ascending=False
+    ).groupby(group_by).head(int(top))
 
 #TODO test later on many samples
 def normalize(df, percent):
