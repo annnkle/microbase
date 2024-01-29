@@ -177,7 +177,7 @@ def multiple_data_upload_view(request):
 @pre_config
 @login_required
 def browse_view(request):
-    all_data = PatientSampleIDs.objects.all().prefetch_related('taxa_set').prefetch_related('metadatarow_set')
+    all_data = PatientSampleIDs.objects.all().prefetch_related('taxa_set').prefetch_related('metadatarow_set').order_by('id')
 
     if not all_data.exists():
         messages.info(request, "No data in the database.")
