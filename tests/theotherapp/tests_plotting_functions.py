@@ -1,6 +1,8 @@
 import pandas as pd
 
-from theotherapp.plotting_functions import create_dataframe_from_sample_list, parse_parameters, normalize, leave_top_taxa_and_others
+from theotherapp.plotting_functions import (create_dataframe_from_sample_list,
+                                            parse_parameters, normalize, pool_samples,
+                                            leave_top_taxa_and_others)
 import pandas
 
 def test_create_dataframe_from_sample_list():
@@ -51,3 +53,27 @@ def test_leave_top_taxa_and_others():
     df = pd.DataFrame(data)
     output = pd.DataFrame(out_data)
     assert leave_top_taxa_and_others(df, 3) == output
+
+def test_pool_samples():
+    data = {
+        "sample_id": [1, 1, 1, 2, 2, 3, 3, 4],
+        "group": ['A', 'A', 'A', 'B', 'B', 'B', 'B', 'C'],
+        "taxon": ["tax1", "tax2", "tax3", #A
+                  "tax1", "tax2", "tax2", "tax3", #B
+                  "tax1"], #C
+        "count": [3, 7, 5,
+                  2, 5, 10, 2,
+                  6]
+    }
+    out_data = {
+        "group": ['A', 'A', 'A', 'B', 'B', 'B', 'C'],
+        "taxon": ["tax1", "tax2", "tax3",
+                  "tax1", "tax2", "tax3",
+                  "tax1"],
+        "count": [3, 7, 5,
+                  2, 15, 2,
+                  6]
+    }
+    df = pd.DataFrame(data)
+    output = pd.DataFrame(out_data)
+    assert pool_samples(df, 'group') == output
