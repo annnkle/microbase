@@ -1,0 +1,216 @@
+{% extends "theotherapp/base.html" %} {% block content %} {% load static %}
+<div class="container">
+    {% if series %}
+    <svg id="graphSvg" width="900" height="400" style="background: whitesmoke; border: solid seagreen 2px;"></svg>
+    {% endif %}
+    <label id="picker-label" for="picker"></label>
+    <br>
+    <input type="color" id="picker" name="picker" value="" style="visibility: collapse;"/>
+    <label for="svgWidthInput">Enter SVG width:</label>
+    <input type="number" id="svgWidthInput" value="600">
+    <form>
+        <input
+                type="submit"
+                name="download_plot_data"
+                value="Download plot data in csv"
+                class="submit-button"
+                style="width: auto"
+        />
+    </form>
+</div>
+<script>
+    //Sample data for the graph (stacked and grouped)
+      const data = [
+          { group: 'Group 1', categories: [{ category: 'A', values: [10, 20, 30], labels: ['Label1', 'Label2', 'Label3'] },
+          { category: 'B', values: [15, 25, 35], labels: ['Label1', 'Label2', 'Label3'] },
+          { category: 'C', values: [20, 30, 40], labels: ['Label1', 'Label2', 'Label3'] }] },
+          { group: 'Group 2', categories: [{ category: 'A', values: [20, 30, 40], labels: ['Label1', 'Label2', 'Label3'] },
+          { category: 'B', values: [25, 35, 45], labels: ['Label1', 'Label2', 'Label3'] },
+          { category: 'C', values: [30, 40, 50], labels: ['Label1', 'Label2', 'Label3'] }] },
+          { group: 'Group 3', categories: [{ category: 'A', values: [30, 40, 50], labels: ['Label1', 'Label2', 'Label3'] },
+          { category: 'B', values: [35, 45, 55], labels: ['Label1', 'Label2', 'Label3'] },
+          { category: 'C', values: [40, 50, 60], labels: ['Label1', 'Label2', 'Label3'] }] }
+      ];
+      // Get the SVG element
+      const svg = document.getElementById('graphSvg');
+
+      const graphWidth = parseInt(svg.getAttribute('width'));
+      const graphHeight = parseInt(svg.getAttribute('height'));
+
+      const margins = graphWidth*0.1;
+      const drawingSpaceWidth = graphWidth*0.8;
+
+      //Count columns in each group
+      let columnCount = []
+      data.forEach( group => {
+          columnCount.push(group.categories.length)
+      });
+
+      // base unit - column gap
+      // column = 4 base units
+      // group gap = 3 columns = 6 base units
+
+      let unitCount = 0;
+      columnCount.forEach( count => {
+        unitCount = unitCount + (3*count + (count-1) + 6)
+      });
+
+      //Last group does not need a gap
+      unitCount = unitCount - 6;
+      const unitWidth = drawingSpaceWidth/unitCount;
+
+      const columnSpacing = unitWidth;
+      const columnWidth = 3*unitWidth;
+      const groupSpacing = 6*unitWidth;
+
+
+      function drawColumns(data) {
+          const maxValue = data.reduce((max, group) => Math.max(max, group.categories.reduce((acc, category) => acc + category.values.reduce((acc, val) => acc + val, 0), 0)), 0);
+
+          // Create a dictionary to map labels to colors
+          const labelColors = {};
+          let colorIndex = 0;
+          const colorList = ["#000000", "#67dab8", "#20c997", "#1ba97f", "#168967", "#11694f",
+                  "#81b4fe", "#61c0cf", "#17a2b8", "#13889b", "#0c5460", "#86cfda",
+                  "#cff0ff", "#e4ffb0", "#ffcece", "#3485fd", "#9d7ed5", "#6f42c1",
+                  "#e374ab", "#d63384", "#b42b6f", "#92235a", "#6f1b45", "#608eda",
+                  "#094bac", "#05285b", "#e25563", "#b92d3a", "#d9290d", "#96242f",
+                  "#721c24", "#4f1319", "#fd933a", "#d56a11", "#ac560e", "#decd87",
+                  "#677821", "#84420a", "#593a21", "#febc85", "#e9aab0", "#e77681",
+                  "#ffd556", "#ffc107", "#d6a206", "#bcd35f", "#696f50", "#445500",
+                  "#ff6600", "#ad8305", "#8fd19e", "#6dc381", "#4ab563", "#228c3a",
+                  "#155724", "#afecda", "#80ffe6", "#80ffb3", "#ffe9a6", "#a8cbfe",
+                  "#c8a9fa", "#f0b6d3", "#4b2d83", "#3a2264", "#590ed5", "#bbff39",
+                  "#dfffa0", "#fff239", "#c142bf", "#a142c1", "#b912f1", "#e904ff",
+                  "#882192", "#ab18ff", "#93d12e", "#9fad26", "#ff0000", "#aa0000",
+                  "#ff00cc", "#ffaaee", "#aa0088", "#d400aa", "#ff0066", "#165044",
+                  "#bbfff1", "#ff80b2", "#e580ff", "#aa00d4", "#0000ff", "#8787de",
+                  "#1c1c24", "#373748", "#53536c", "#48373e", "#6c535d", "#ac939d",
+                  "#c8b7be", "#6f6f91", "#b7b7c8", "#9393ac", "#dbdbe3"];
+
+          // Loop through the data and create color mapping for labels
+          data.forEach(group => {
+              group.categories.forEach(category => {
+                  category.labels.forEach(label => {
+                      if (!(label in labelColors)) {
+                          labelColors[label] = colorList[Math.floor(Math.random() * colorList.length)];
+                          colorIndex++;
+                      }
+                  });
+              });
+          });
+
+          // Loop through the data and draw columns
+          let spaceTaken = margins;
+          for (let i = 0; i < data.length; i++) {
+              const group = data[i];
+              const startX = spaceTaken;
+
+              for (let j = 0; j < group.categories.length; j++) {
+                  const category = group.categories[j];
+                  let yOffset = 0;
+                  const x = startX + (columnWidth + columnSpacing) * j;
+                  spaceTaken = spaceTaken + columnWidth + columnSpacing;
+
+                  for (let k = 0; k < category.values.length; k++) {
+                      const value = category.values[k];
+                      const height = (value / maxValue) * graphHeight;
+                      const y = graphHeight - height - yOffset;
+                      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                      rect.setAttribute('x', x);
+                      rect.setAttribute('y', y);
+                      rect.setAttribute('width', columnWidth);
+                      rect.setAttribute('height', height);
+                      rect.setAttribute('fill', labelColors[category.labels[k]]); // Set column color based on label
+                      rect.setAttribute('value', value);
+                      rect.setAttribute('label', category.labels[k]);
+                      svg.appendChild(rect);
+                      yOffset += height;
+                  }
+              }
+              spaceTaken = spaceTaken - columnSpacing + groupSpacing;
+          }
+          [...document.getElementsByTagName('rect')].forEach((rect) => {
+            // Add label for value
+            const valueLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            valueLabel.setAttribute('x', Number(rect.getAttribute('x')) + columnWidth);
+            valueLabel.setAttribute('y', Number(rect.getAttribute('y')) + Number(rect.getAttribute('height')) / 2);
+            valueLabel.setAttribute('class', 'value-label');
+            valueLabel.textContent = rect.getAttribute('label') + " count: " + rect.getAttribute('value')
+            valueLabel.style.visibility = "hidden";
+            svg.appendChild(valueLabel);
+
+            //Add hover effects
+            rect.addEventListener("mouseover", () => {
+              rect.style.stroke = 'black';
+              valueLabel.style.visibility = "visible";
+            });
+            rect.addEventListener("mouseleave",()=>{
+              rect.style.stroke= "transparent";
+              valueLabel.style.visibility = "hidden";
+            })
+          });
+
+
+          // Draw legend
+          let legendX = 10;
+          let legendY = 10;
+          let legendItemHeight = 20;
+          let legendSpacing = 5;
+
+          Object.entries(labelColors).forEach(([label, color]) => {
+              const legendRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+              legendRect.setAttribute('x', legendX);
+              legendRect.setAttribute('y', legendY);
+              legendRect.setAttribute('width', legendItemHeight);
+              legendRect.setAttribute('height', legendItemHeight);
+              legendRect.setAttribute('fill', color);
+              svg.appendChild(legendRect);
+
+              legendRect.addEventListener("mouseover", () => {
+                legendRect.style.stroke = 'black';
+              });
+              legendRect.addEventListener("mouseleave",()=>{
+                legendRect.style.stroke= "transparent";
+              });
+              legendRect.addEventListener("click",()=>{
+                document.getElementById('picker-label').click();
+                document.getElementById('picker').onchange = function() {
+                  newColor = document.getElementById('picker').value;
+                  oldColor = legendRect.getAttribute('fill');
+                  labelColors[label] = newColor;
+                  changedRects = document.querySelectorAll('[fill=\"' + oldColor + '\"]');
+                  changedRects.forEach((rect) => {
+                  rect.setAttribute('fill', newColor);
+                  });
+                }
+              });
+
+              const legendText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              legendText.setAttribute('x', legendX + legendItemHeight + 5);
+              legendText.setAttribute('y', legendY + legendItemHeight / 2);
+              legendText.setAttribute('class', 'legend');
+              legendText.textContent = label;
+              svg.appendChild(legendText);
+
+              legendY += legendItemHeight + legendSpacing;
+          });
+      }
+      // Call drawColumns function to render the graph
+      drawColumns(data);
+
+      const svgWidthInput = document.getElementById('svgWidthInput');
+
+        // Function to handle input change event
+        function handleInputChange() {
+            const newWidth = parseFloat(svgWidthInput.value);
+            if (!isNaN(newWidth) && newWidth > 0) {
+                svg.setAttribute('width', newWidth);
+            }
+        }
+
+
+</script>
+
+{% endblock %}
+
